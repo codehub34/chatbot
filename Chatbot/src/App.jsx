@@ -4,11 +4,11 @@ import ChatbotIcon from "./components/ChatbotIcon"
 import ChatForm from "./components/ChatForm";
 import ChatMessage from "./components/ChatMessage";
 import Home from "./components/Home";
-import "./index.css"; // Fixed: import CSS properly
+import "./index.css";
 
 function App() {
    const [chatHistory, setChatHistory] = useState([]);
-   const [showChatbot, setShowChatbot] = useState(false); // Fixed: was [true]
+   const [showChatbot, setShowChatbot] = useState(false);
    const chatBodyRef = useRef();
 
   //  Generate Bot Response
@@ -20,24 +20,43 @@ function App() {
     // Format chat history for API request
     history = history.map(({role, text}) => ({role, parts: [{text}]}));
 
+    // Check if API URL is available
+    const apiUrl = import.meta.env.VITE_API_URL;
+    if (!apiUrl) {
+      console.error("API URL not configured");
+      updateHistory("Sorry, the chat service is currently unavailable. Please try again later.");
+      return;
+    }
+
     const requestOptions = {
       method:"POST",
-      headers: { "Content-Type": "application/json" }, // Fixed: was 'header'
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({contents: history })
     }
 
     try {
         // Make the API call to get the bot's response
-        const response = await fetch(import.meta.env.VITE_API_URL, requestOptions);
+        const response = await fetch(apiUrl, requestOptions);
         const data = await response.json();
-        if (!response.ok) throw new Error(data.error.message || "Something went wrong!" );
+        if (!response.ok) throw new Error(data.error?.message || "Something went wrong!" );
 
         // Clean and update chat history with bot's response
-        const apiResponseText = data.candidates[0].content.parts[0].text.replace(1).trim();
+        let apiResponseText = data.candidates[0].content.parts[0].text;
+        
+        // Better formatting for responses
+        apiResponseText = apiResponseText
+          // .replace (/\r\n/g, '\n') // Replace carriage returns with new lines
+
+          .replace(/\n{3,}/g, '\n\n') // Limit consecutive new lines to two
+          .replace(/^\n+|\n+$/g, '') // Trim leading and trailing new lines
+          
+          .trim();
+        
         updateHistory(apiResponseText);
     }
     catch (error){
-      console.log(error);
+      console.error("API Error:", error);
+      setChatHistory(prev => [...prev.filter(msg => msg.text !== "Thinking..."), {role: "model", text: "Sorry, I encountered an error. Please try again."}]);
     }
   };
 
@@ -50,7 +69,7 @@ function App() {
 
   return (
     <>
-      <Home setShowChatbot={setShowChatbot} /> {/* Fixed: pass setShowChatbot prop */}
+      <Home setShowChatbot={setShowChatbot} />
       <div className={`container ${showChatbot ? 'show-chatbot' : ''}`}>
         <button onClick={() => setShowChatbot(prev => !prev)} id="chatbot-toggler">
           <span className="material-symbols-outlined">mode_comment</span>
