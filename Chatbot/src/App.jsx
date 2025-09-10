@@ -1,113 +1,152 @@
-// src/App.jsx
 import { useEffect, useRef, useState } from "react";
-import ChatbotIcon from "./components/ChatbotIcon"
+import ChatbotIcon from "./components/ChatbotIcon";
 import ChatForm from "./components/ChatForm";
 import ChatMessage from "./components/ChatMessage";
 import Home from "./components/Home";
 import "./index.css";
 
 function App() {
-   const [chatHistory, setChatHistory] = useState([]);
-   const [showChatbot, setShowChatbot] = useState(false);
-   const chatBodyRef = useRef();
+  const [chatHistory, setChatHistory] = useState([]);
+  const [showChatbot, setShowChatbot] = useState(false);
+  const chatBodyRef = useRef();
 
-  //  Generate Bot Response
+  // ✅ Configurable welcome message
+  const welcomeMessage =
+    "👋 Hi there! I’m MassAI, your personal AI tutor.\nWhat topic would you like to explore today?";
+
+  // Helper: safely remove last "Thinking..." before adding new bot text
+  const replaceThinkingWithResponse = (text) => {
+    setChatHistory((prev) => {
+      const newHistory = [...prev];
+      const lastThinkingIndex = newHistory.findIndex(
+        (msg, i) => msg.text === "Thinking..." && i === newHistory.length - 1
+      );
+      if (lastThinkingIndex !== -1) newHistory.splice(lastThinkingIndex, 1);
+      newHistory.push({ role: "model", text });
+      return newHistory;
+    });
+  };
+
+  // ✅ Generate Bot Response + Clean Text
   const generateBotResponse = async (history) => {
-    const updateHistory = (text) => {
-      setChatHistory(prev => [...prev.filter(msg => msg.text !== "Thinking..."), {role: "model", text}]);
-    }
-    
-    // Format chat history for API request
-    history = history.map(({role, text}) => ({role, parts: [{text}]}));
+    const formattedHistory = history.map(({ role, text }) => ({
+      role,
+      parts: [{ text }],
+    }));
 
-    // Check if API URL is available
     const apiUrl = import.meta.env.VITE_API_URL;
     if (!apiUrl) {
       console.error("API URL not configured");
-      updateHistory("Sorry, the chat service is currently unavailable. Please try again later.");
+      replaceThinkingWithResponse(
+        "Sorry, the chat service is currently unavailable. Please try again later."
+      );
       return;
     }
 
     const requestOptions = {
-      method:"POST",
+      method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({contents: history })
-    }
+      body: JSON.stringify({ contents: formattedHistory }),
+    };
 
     try {
-        // Make the API call to get the bot's response
-        const response = await fetch(apiUrl, requestOptions);
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error?.message || "Something went wrong!" );
+      const response = await fetch(apiUrl, requestOptions);
+      const data = await response.json();
 
-        // Clean and update chat history with bot's response
-        let apiResponseText = data.candidates[0].content.parts[0].text;
-        
-        // Better formatting for responses
-        apiResponseText = apiResponseText
-          // .replace (/\r\n/g, '\n') // Replace carriage returns with new lines
+      if (!response.ok || !data?.candidates?.[0]?.content?.parts?.[0]?.text) {
+        throw new Error(data.error?.message || "No response from AI.");
+      }
 
-          .replace(/\n{3,}/g, '\n\n') // Limit consecutive new lines to two
-          .replace(/^\n+|\n+$/g, '') // Trim leading and trailing new lines
-          
-          .trim();
-        
-        updateHistory(apiResponseText);
-    }
-    catch (error){
+      // ✅ CLEAN RESPONSE TEXT
+      let apiResponseText = data.candidates[0].content.parts[0].text
+        .replace(/\*/g, "") // Remove markdown asterisks
+        .replace(/\n{3,}/g, "\n\n") // Normalize extra newlines
+        .replace(/^\n+|\n+$/g, "") // Trim leading/trailing newlines
+        .trim();
+
+      replaceThinkingWithResponse(apiResponseText);
+    } catch (error) {
       console.error("API Error:", error);
-      setChatHistory(prev => [...prev.filter(msg => msg.text !== "Thinking..."), {role: "model", text: "Sorry, I encountered an error. Please try again."}]);
+      replaceThinkingWithResponse(
+        "Sorry, I encountered an error. Please try again."
+      );
     }
   };
 
+  // Auto-scroll on new messages
   useEffect(() => {
-    // Auto-scroll whenever chat history updates
     if (chatBodyRef.current) {
-      chatBodyRef.current.scrollTo({top: chatBodyRef.current.scrollHeight, behavior: "smooth"});
+      chatBodyRef.current.scrollTo({
+        top: chatBodyRef.current.scrollHeight,
+        behavior: "smooth",
+      });
     }
   }, [chatHistory]);
 
   return (
     <>
       <Home setShowChatbot={setShowChatbot} />
-      <div className={`container ${showChatbot ? 'show-chatbot' : ''}`}>
-        <button onClick={() => setShowChatbot(prev => !prev)} id="chatbot-toggler">
+      <div className={`container ${showChatbot ? "show-chatbot" : ""}`}>
+        {/* Chatbot Toggle Button */}
+        <button
+          onClick={() => setShowChatbot((prev) => !prev)}
+          id="chatbot-toggler"
+        >
           <span className="material-symbols-outlined">mode_comment</span>
           <span className="material-symbols-outlined">close</span>
         </button>
 
+        {/* Chatbot Popup */}
         <div className="chatbot-popup">
           {/* Chatbot Header */}
           <div className="chat-header">
             <div className="header-info">
-             <ChatbotIcon/>
+              <ChatbotIcon />
               <h1 className="logo-text">MassAI</h1>
             </div>
-            {/* Linking Google Fonts */}
-            <button onClick={() => setShowChatbot(prev => !prev)} className="material-symbols-outlined">keyboard_arrow_down</button>
+            <button
+              onClick={() => setShowChatbot((prev) => !prev)}
+              className="material-symbols-outlined"
+            >
+              keyboard_arrow_down
+            </button>
           </div>
+
           {/* Chatbot Body */}
           <div ref={chatBodyRef} className="chat-body">
-            <div className="message bot-message">
-              <ChatbotIcon/>
-              <p className="message-text">
-                Hey User; I am Mass<br/> How can I help you today?
-              </p>
-            </div>
+            {/* Show welcome message ONLY if no chat history yet */}
+            {chatHistory.length === 0 && (
+              <div className="message bot-message">
+                <ChatbotIcon />
+                <p className="message-text">
+                  {welcomeMessage.split("\n").map((line, i) => (
+                    <span key={i}>
+                      {line}
+                      <br />
+                    </span>
+                  ))}
+                </p>
+              </div>
+            )}
 
-            {/* Render the chat history dynamically */}
+            {/* Render Chat History */}
             {chatHistory.map((chat, index) => (
               <ChatMessage key={index} chat={chat} />
-            ))} 
+            ))}
           </div>
-           {/* Chat Footer */}
-           <div className="chat-footer">
-             <ChatForm chatHistory={chatHistory} setChatHistory={setChatHistory} generateBotResponse={generateBotResponse} />
-            </div>
+
+          {/* Chatbot Footer */}
+          <div className="chat-footer">
+            <ChatForm
+              chatHistory={chatHistory}
+              setChatHistory={setChatHistory}
+              generateBotResponse={generateBotResponse}
+            />
+          </div>
         </div>
       </div>
     </>
-  )
+  );
 }
 
 export default App;

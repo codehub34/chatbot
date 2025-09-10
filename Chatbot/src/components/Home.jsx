@@ -38,11 +38,10 @@ const Home = ({ setShowChatbot }) => {
             <h2>Get Homework Help Anytime, Anywhere</h2>
             <p>MassAi is your personal study assistant that helps you with math, science, history, and more. Whether you're stuck on a problem or need help understanding concepts, I'm here to help!</p>
             <div className="cta-buttons">
-              <button 
-                className="primary-btn" 
-                onClick={() => setShowChatbot(true)}
-                id="chatbot-toggler"
-              >
+              <button className="modal-primary-btn" onClick={() => {
+                setShowModal(false);
+                setShowChatbot(true);
+              }}>
                 Start Chatting Now
               </button>
               <button 
@@ -160,20 +159,8 @@ const Home = ({ setShowChatbot }) => {
                   <li>Free to use for all students</li>
                 </ul>
               </div>
-                <div className="modal-section">
-                <h3>Get Started</h3>
-                <p>Ready to make studying easier and more effective? Click the button below to start chatting with MassAi and get the help you need!</p>
-              </div>
-                <div className="modal-section">
-                <h3>Contact Us</h3>
-                <p>If you have any questions or feedback, feel free to reach out to us at <a href="mailto:julatechs@gmail.com">
-Team Jula Tech</a>. We're here to help!</p>
-                </div>
-
-                <h2>Powered By: Mamudu Massalay</h2>
             </div>
             <div className="modal-footer">
-
               <button className="modal-primary-btn" onClick={() => {
                 setShowModal(false);
                 setShowChatbot(true);
@@ -188,10 +175,8 @@ Team Jula Tech</a>. We're here to help!</p>
       {/* Footer */}
       <footer className="home-footer">
         <div className="footer-content">
-          <p>© 2025 MassAi - Your Personal Study Assistant</p>
+          <p>© 2024 MassAi - Your Personal Study Assistant</p>
           <p>Ready to make learning easier and more fun!</p>
-          {/* For any feedback  */}
-            <p>Contact us at <a href="mailto:masskeita64@gmail.com">Team Jula Tech</a></p>
         </div>
       </footer>
     </div>

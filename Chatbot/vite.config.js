@@ -1,23 +1,22 @@
+// vite.config.js
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import path from 'path'
 
+// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  root: '.', // Ensure root is current directory
   build: {
-    outDir: 'dist', // Vercel expects this as default output
+    outDir: 'dist',
     rollupOptions: {
-      input: path.resolve(__dirname, 'index.html') // Ensure entry point is correct
-    }
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+        },
+      },
+    },
   },
   server: {
+    host: true,
     port: 3000,
-    open: true
   },
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src') // Optional: cleaner imports
-    }
-  }
 })
