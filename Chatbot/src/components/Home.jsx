@@ -1,6 +1,7 @@
 // src/components/Home.jsx
 import React, { useState } from 'react';
 import './Home.css';
+import userImg from '../images/Laptop.png';
 
 const Home = ({ setShowChatbot }) => {
   const [showModal, setShowModal] = useState(false);
@@ -106,11 +107,32 @@ const Home = ({ setShowChatbot }) => {
               </div>
               <div className="testimonial-author">
                 <span className="author-name">Michael T.</span>
+                <span className="author-role">Middle School Student</span>
+              </div>
+            </div>
+            <div className="testimonial-card">
+              <div className="testimonial-content">
+                <p>"The explanations are clear and easy to follow. MassAi has made studying so much less stressful!"</p>
+              </div>
+              <div className="testimonial-author">
+                <span className="author-name">Moh Ali Kanneh</span>
+                <span className="author-role">College Student</span>
+              </div>
+            </div>
+            {/* A college student Musa K Coneh */}
+            <div className="testimonial-card">
+              <div className="testimonial-content">
+                <p>"MassAi is a game-changer! It helped me ace my history exams with detailed explanations and study tips."</p>
+              </div>
+              <div className="testimonial-author">
+                <span className="author-name">Musa K. Coneh</span>
                 <span className="author-role">College Student</span>
               </div>
             </div>
           </div>
+
         </div>
+
       </main>
 
       {/* Modal */}
@@ -159,6 +181,18 @@ const Home = ({ setShowChatbot }) => {
                   <li>Free to use for all students</li>
                 </ul>
               </div>
+              <div className="model-sections">
+                <h3>Meet the Founder</h3>
+                <p>
+                  Mamudu Massalay is a passionate developer and educator dedicated to 
+                  leveraging technology to enhance learning experiences. With a background in computer science and a love for teaching,
+                  Mamudu created MassAi to help students overcome academic challenges and achieve their full potential.
+                </p>
+                <div className="userImg">
+                  <img src={userImg}alt='User' />
+                 <p className="founderName">Mamudu Massalay - Founder & Lead Developer</p>
+                </div>
+              </div>
             </div>
             <div className="modal-footer">
               <button className="modal-primary-btn" onClick={() => {
@@ -174,10 +208,40 @@ const Home = ({ setShowChatbot }) => {
 
       {/* Footer */}
       <footer className="home-footer">
-        <div className="footer-content">
-          <p>© 2024 MassAi - Your Personal Study Assistant</p>
-          <p>Ready to make learning easier and more fun!</p>
+      
+        <div className="footer-grid">
+          <div className="footer-column">
+            <h4>About</h4>
+            <p>MassAi is dedicated to providing students with instant homework help and study support through AI-powered technology.</p>
+          </div>
+          <div className="footer-column">
+            <h4>Quick Links</h4>
+            <ul>
+              <li><a href="#features">Features</a></li>
+              <li><a href="#testimonials">Testimonials</a></li>
+              <li><a href="#learn-more" onClick={() => setShowModal(true)}>Learn More</a></li>
+            </ul>
+          </div>
+          <div className="footer-column">
+            <h4>Contact</h4>
+            <p>Email:
+              <a href="mailto:massaly@julatechs.com">@Julatech</a>
+            </p>
+            <p>Phone: +1 (763) 346-4567</p>
+            <p>Address: Front Street | Monrovia, Liberia</p>
+          </div>
         </div>
+       <div className="footer-bottom">
+          <p>© 2025 MassAi - Your Personal Study Assistant</p>
+          <p>Ready to make learning easier and more fun!</p>
+          {/* <button className="modal-primary-btn" onClick={() => {
+                setShowModal(false);
+                setShowChatbot(true);
+              }}>
+                Start Chatting Now
+              </button>  */}
+        </div>
+
       </footer>
     </div>
   );
