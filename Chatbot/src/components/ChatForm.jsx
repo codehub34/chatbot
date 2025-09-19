@@ -1,49 +1,39 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
 const ChatForm = ({ chatHistory, setChatHistory, generateBotResponse }) => {
   const inputRef = useRef();
+  const [file, setFile] = useState(null);
+
+  const systemInstruction = `
+You are **MassAI**, an expert AI tutor with a friendly and encouraging personality.
+Follow this approach step by step:
+1. Greet warmly & ask for name if unknown.
+2. Ask what subject they want to learn.
+3. Ask what specific topic they need help with.
+4. Give a clear 3-4 sentence explanation.
+5. Provide a worked example, step-by-step.
+6. Ask if they want another example or have questions.
+7. If they say thanks, reply warmly and close politely.
+Keep it short, structured, and encouraging.
+`.trim();
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
     const userMessage = inputRef.current.value.trim();
-    if (!userMessage) return;
+    if (!userMessage && !file) return;
+
     inputRef.current.value = "";
 
-    // Show user message + "Thinking..." in chat
     setChatHistory((prev) => [
       ...prev,
-      { role: "user", text: userMessage },
-      { role: "model", text: "Thinking..." }
+      file
+        ? { role: "user", text: `📎 Sent file: ${file.name}` }
+        : { role: "user", text: userMessage },
+      { role: "model", text: "typing" }
     ]);
 
-    // ✅ Clear, structured system instruction
-    const systemInstruction = `
-You are **MassAI**, an expert AI tutor with a friendly and encouraging personality.  
-Follow this approach step by step:
-
-1. **Greet the user** warmly and ask for their name if you don't know it yet. 
-
-2. Ask what **subject** they want to learn (e.g., math, programming, science).  
-3. Ask what **specific topic** within that subject they need help with.  
-4. Provide a **clear, simple explanation** of the topic in 3-4 sentences.  
-5. Give a **worked example problem**, solving it step-by-step so the user can follow along.  
-6. End by asking if they would like **another example** or if they have **questions**.
-
-Keep responses short, structured, and easy to read (use paragraphs and line breaks).  
-Encourage the user and make learning interactive.
-7. once the user respond with **Thanks**, end by saying "You're welcome! and Thank you for using MassAI. Happy studying!"
-    `.trim();
-
-    // Add system prompt only for first message
-    const newHistory =
-      chatHistory.length === 0
-        ? [{ role: "user", text: `${systemInstruction}\n\nUser: ${userMessage}` }]
-        : [...chatHistory, { role: "user", text: userMessage }];
-
-    // Trigger AI response after slight delay
-    setTimeout(() => {
-      generateBotResponse(newHistory);
-    }, 300);
+    generateBotResponse({ userMessage, file, systemInstruction });
+    setFile(null);
   };
 
   return (
@@ -51,10 +41,19 @@ Encourage the user and make learning interactive.
       <input
         ref={inputRef}
         type="text"
-        placeholder="Message..."
+        placeholder="Type your message..."
         className="message-input"
-        required
       />
+
+      <label className="file-upload-label">
+        📎
+        <input
+          type="file"
+          accept=".png,.jpg,.jpeg,.pdf"
+          onChange={(e) => setFile(e.target.files[0])}
+        />
+      </label>
+
       <button type="submit" className="material-symbols-outlined">
         arrow_upward
       </button>
